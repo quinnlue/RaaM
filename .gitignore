@@ -1,0 +1,122 @@
+# ===============================
+# Python
+# ===============================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.env
+.venv
+venv/
+ENV/
+env/
+
+# ===============================
+# Packaging / build
+# ===============================
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# ===============================
+# Logs & runtime files
+# ===============================
+*.log
+*.out
+*.err
+*.pid
+*.sqlite3
+
+# ===============================
+# Jupyter / IPython
+# ===============================
+.ipynb_checkpoints/
+.profile_default/
+ipython_config.py
+
+# ===============================
+# IDEs / Editors
+# ===============================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# ===============================
+# OS junk
+# ===============================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===============================
+# PyTorch / ML artifacts
+# ===============================
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# TensorBoard / wandb
+runs/
+wandb/
+lightning_logs/
+
+# HuggingFace caches
+.cache/
+.huggingface/
+hf_cache/
+
+# ===============================
+# Data (adjust to taste)
+# ===============================
+data/
+datasets/
+*.csv
+*.tsv
+*.jsonl
+*.parquet
+*.arrow
+
+# ===============================
+# Checkpoints / experiments
+# ===============================
+checkpoints/
+outputs/
+results/
+experiments/
+
+# ===============================
+# Temporary files
+# ===============================
+tmp/
+temp/
+*.tmp
+
+# ===============================
+# Coverage / testing
+# ===============================
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+
+# ===============================
+# Environment / secrets
+# ===============================
+.env.*
+*.key
+*.pem
+secrets.yaml
+secrets.json
+
+# ===============================
+# Misc
+# ===============================
+*.bak
+*.old
