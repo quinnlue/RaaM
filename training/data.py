@@ -38,11 +38,12 @@ class BucketBatchSampler(Sampler):
 
 
 class CoTDataset(Dataset):
-    def __init__(self, data_root: str, batch_column: str = "bucket", data_column: str = "seq", ext=".parquet"):
+    def __init__(self, data_root: str, batch_column: str = "bucket", data_column: str = "seq", mask_column: str = "attn_mask", ext=".parquet"):
         self.data_root = data_root
         self.ext = ext
         self.batch_column = batch_column
         self.data_column = data_column
+        self.mask_column = mask_column
         self.file_paths = self.get_file_paths()
         self.row_maps = []
         self.file_data = []
@@ -65,12 +66,12 @@ class CoTDataset(Dataset):
         file_idx, row_idx, _ = self.row_maps[idx]
         row = self.file_data[file_idx].iloc[row_idx]
         data = row[self.data_column]
-
+        mask = row[self.mask_column]
         if isinstance(data, np.ndarray):
-            return torch.from_numpy(data.copy()).long()  # .copy() to make writable
+            return torch.from_numpy(data.copy()).long(), torch.from_numpy(mask.copy()).bool()
         elif isinstance(data, list):
-            return torch.tensor(data)
-        return data
+            return torch.tensor(data), torch.tensor(mask).bool()
+        return data, mask
 
     def __repr__(self):
         return self.__str__()

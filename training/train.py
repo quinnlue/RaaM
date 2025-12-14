@@ -48,11 +48,11 @@ if __name__ == "__main__":
     for epoch in range(10):
         total_loss = 0.0
 
-        for batch in tqdm(loader, desc=f"Epoch {epoch+1}"):
-            batch = batch.to(dtype=torch.long)  # Model expects LongTensor
-            
+        for batch, mask in tqdm(loader, desc=f"Epoch {epoch+1}"):
+            mask = mask.to(dtype=torch.bool)
+            batch = batch.to(dtype=torch.long)
             optimizer.zero_grad()
-            outputs = model(input_ids=batch, labels=batch)
+            outputs = model(input_ids=batch, attention_mask=mask, labels=batch)
             loss = outputs.loss
 
             accelerator.backward(loss)
