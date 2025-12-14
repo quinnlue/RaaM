@@ -86,7 +86,6 @@ datasets/
 # ===============================
 # Checkpoints / experiments
 # ===============================
-checkpoints/
 outputs/
 results/
 experiments/

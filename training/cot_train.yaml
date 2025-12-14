@@ -1,0 +1,6 @@
+data:
+  root: "data/"
+  tokens_per_batch: 1024
+  bucket_sizes: [16, 32, 64, 128]
+  batch_column: "bucket"
+  data_column: "seq"
