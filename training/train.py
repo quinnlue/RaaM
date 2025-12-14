@@ -10,7 +10,7 @@ import torch
 from tqdm import tqdm
 from accelerate import Accelerator
 
-accelerator = Accelerator()
+accelerator = Accelerator(precision="bf16")
 
 dataset = CoTDataset(
     data_root="data/",
@@ -26,7 +26,7 @@ loader = DataLoader(
     dataset,
     batch_sampler=BucketBatchSampler(
         dataset,
-        tokens_per_batch=128,
+        tokens_per_batch=16384,
         bucket_sizes=bucket_sizes,
         shuffle=True
 
