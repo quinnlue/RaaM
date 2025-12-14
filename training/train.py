@@ -10,7 +10,7 @@ import torch
 from tqdm import tqdm
 from accelerate import Accelerator
 
-accelerator = Accelerator(precision="bf16")
+accelerator = Accelerator(mixed_precision="bf16")
 
 dataset = CoTDataset(
     data_root="data/",
