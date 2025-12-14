@@ -26,7 +26,7 @@ loader = DataLoader(
     dataset,
     batch_sampler=BucketBatchSampler(
         dataset,
-        tokens_per_batch=16384,
+        tokens_per_batch=4096,
         bucket_sizes=bucket_sizes,
         shuffle=True
 
