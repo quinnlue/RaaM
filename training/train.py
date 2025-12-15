@@ -42,7 +42,13 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 model, tokenizer, config = get_model()
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
+
+model.config.use_cache = False
+model.gradient_checkpointing_enable()
+model.train()
+
 model, optimizer, loader = accelerator.prepare(model, optimizer, loader)
+
 
 if __name__ == "__main__":
     for epoch in range(10):
