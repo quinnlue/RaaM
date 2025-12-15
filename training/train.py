@@ -51,6 +51,11 @@ WARMUP_STEPS = 100
 
 model, tokenizer, config = get_model()
 
+model.resize_token_embeddings(len(tokenizer))
+
+print(tokenizer("<think>"))
+
+exit()
 total_steps = NUM_EPOCHS * len(loader)
 
 
@@ -59,14 +64,21 @@ lora_config = LoraConfig(
     lora_alpha=32,
     lora_dropout=0.00,
     task_type="CAUSAL_LM",
-    target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "down_proj", "up_proj"]
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"]
 )
 
 model = get_peft_model(model, lora_config)
 
 emb = model.get_input_embeddings()
-for param in emb.parameters():
-    param.requires_grad = True
+emb.requires_grad = True
+
+num_new_tokens = 6
+def mask_embedding_grads(grad):
+    grad[:-num_new_tokens] = 0
+    return grad
+
+emb.register_hook(mask_embedding_grads)
+
 
 model.config.use_cache = False
 model.gradient_checkpointing_enable()
