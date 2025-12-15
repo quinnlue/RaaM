@@ -5,6 +5,7 @@ sys.path.insert(0, str(project_root))
 
 from models.model import get_model
 from training.data import CoTDataset, BucketBatchSampler
+from training.utils import Metrics, LRScheduler
 from torch.utils.data import DataLoader
 import torch
 from tqdm import tqdm
@@ -12,7 +13,7 @@ from accelerate import Accelerator
 
 accelerator = Accelerator(
     mixed_precision="bf16",
-    gradient_checkpointing=True
+    gradient_accumulation_steps=12
     )
 
 dataset = CoTDataset(
@@ -42,34 +43,54 @@ print(f"Number of batches: {len(loader)}")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
+NUM_EPOCHS = 1
+MAX_LR = 1e-4
+MIN_LR = 1e-6
+WARMUP_STEPS = 100
 
 model, tokenizer, config = get_model()
-optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
+optimizer = torch.optim.AdamW(model.parameters(), lr=MAX_LR)
+
+total_steps = NUM_EPOCHS * len(loader)
+scheduler = LRScheduler(
+    optimizer,
+    max_lr=MAX_LR,
+    total_steps=total_steps,
+    warmup_steps=WARMUP_STEPS,
+    min_lr=MIN_LR
+)
 
 model.config.use_cache = False
 model.gradient_checkpointing_enable()
 model.train()
 
-model, optimizer, loader = accelerator.prepare(model, optimizer, loader)
+model, optimizer, loader, scheduler = accelerator.prepare(model, optimizer, loader, scheduler)
 
 
 if __name__ == "__main__":
-    for epoch in range(10):
-        total_loss = 0.0
+    metrics = Metrics(
+        num_epochs=NUM_EPOCHS,
+        dataloader_length=len(loader),
+        log_frequency=100,
+        training_log_path="training.log"
+    )
+    
+    pbar = tqdm(total=total_steps, desc="Training")
+    
+    for epoch in range(NUM_EPOCHS):
+        for batch, mask in loader:
+            with accelerator.accumulate(model):
+                mask = mask.to(dtype=torch.bool)
+                batch = batch.to(dtype=torch.long)
+                optimizer.zero_grad()
+                outputs = model(input_ids=batch, attention_mask=mask, labels=batch)
+                loss = outputs.loss
 
-        for batch, mask in tqdm(loader, desc=f"Epoch {epoch+1}"):
-            print(torch.backends.cuda.flash_sdp_enabled())
-            mask = mask.to(dtype=torch.bool)
-            batch = batch.to(dtype=torch.long)
-            optimizer.zero_grad()
-            outputs = model(input_ids=batch, attention_mask=mask, labels=batch)
-            loss = outputs.loss
+                accelerator.backward(loss)
+                optimizer.step()
+                scheduler.step()
 
-            accelerator.backward(loss)
-            optimizer.step()
-
-            total_loss += loss.item()
-            print(loss.item())
-
-        # Print after epoch, not every batch
-        accelerator.print(f"Epoch {epoch+1} - Avg Loss: {total_loss / len(loader):.4f}")
+                metrics.update(loss.item(), optimizer, pbar, scheduler)
+    
+    pbar.close()
+    accelerator.print(f"Training complete. Final step: {metrics.pbar_manager.current_step}")
