@@ -19,8 +19,8 @@ accelerator = Accelerator(
 
 dataset = CoTDataset(
     data_root="data/",
-    batch_column="bucket",
-    data_column="seq",
+    batch_column="bucket_length",
+    data_column="input_ids",
     ext=".parquet"
 )
 
@@ -53,15 +53,12 @@ model, tokenizer, config = get_model()
 
 model.resize_token_embeddings(len(tokenizer))
 
-print(tokenizer("<think>"))
-
-exit()
 total_steps = NUM_EPOCHS * len(loader)
 
 
 lora_config = LoraConfig(
-    r=16,
-    lora_alpha=32,
+    r=8,
+    lora_alpha=16,
     lora_dropout=0.00,
     task_type="CAUSAL_LM",
     target_modules=["q_proj", "k_proj", "v_proj", "o_proj"]
@@ -70,14 +67,14 @@ lora_config = LoraConfig(
 model = get_peft_model(model, lora_config)
 
 emb = model.get_input_embeddings()
-emb.requires_grad = True
+emb.weight.requires_grad = True
 
-num_new_tokens = 6
+N_NEW_TOKENS = 6
 def mask_embedding_grads(grad):
-    grad[:-num_new_tokens] = 0
+    grad[:-N_NEW_TOKENS] = 0
     return grad
 
-emb.register_hook(mask_embedding_grads)
+emb.weight.register_hook(mask_embedding_grads)
 
 
 model.config.use_cache = False
