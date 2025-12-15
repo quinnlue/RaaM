@@ -52,13 +52,7 @@ WARMUP_STEPS = 100
 model, tokenizer, config = get_model()
 
 total_steps = NUM_EPOCHS * len(loader)
-scheduler = LRScheduler(
-    optimizer,
-    max_lr=MAX_LR,
-    total_steps=total_steps,
-    warmup_steps=WARMUP_STEPS,
-    min_lr=MIN_LR
-)
+
 
 lora_config = LoraConfig(
     r=16,
@@ -81,6 +75,14 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=MAX_LR)
 
 model, optimizer, loader, scheduler = accelerator.prepare(model, optimizer, loader, scheduler)
 model.print_trainable_parameters()
+
+scheduler = LRScheduler(
+    optimizer,
+    max_lr=MAX_LR,
+    total_steps=total_steps,
+    warmup_steps=WARMUP_STEPS,
+    min_lr=MIN_LR
+)
 
 if __name__ == "__main__":
     metrics = Metrics(
