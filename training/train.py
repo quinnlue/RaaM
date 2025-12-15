@@ -25,7 +25,7 @@ dataset = CoTDataset(
 )
 
 
-bucket_sizes = {0: 512, 1: 1024, 2: 2048, 3: 4096}
+bucket_sizes = {512: 512, 1024: 1024, 2048: 2048, 4096: 4096}
 
 loader = DataLoader(
     dataset,
