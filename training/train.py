@@ -108,8 +108,12 @@ if __name__ == "__main__":
             with accelerator.accumulate(model):
                 mask = mask.to(dtype=torch.bool)
                 batch = batch.to(dtype=torch.long)
+                
+                labels = batch.clone()
+                labels[~mask] = -100
+
                 optimizer.zero_grad()
-                outputs = model(input_ids=batch, attention_mask=mask, labels=batch)
+                outputs = model(input_ids=batch, attention_mask=mask, labels=labels)
                 loss = outputs.loss
 
                 accelerator.backward(loss)
