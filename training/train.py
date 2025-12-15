@@ -21,6 +21,7 @@ dataset = CoTDataset(
     data_root="data/",
     batch_column="bucket_length",
     data_column="input_ids",
+    mask_column="attention_mask",
     ext=".parquet"
 )
 
