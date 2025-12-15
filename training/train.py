@@ -72,10 +72,6 @@ model.config.use_cache = False
 model.gradient_checkpointing_enable()
 model.train()
 optimizer = torch.optim.AdamW(model.parameters(), lr=MAX_LR)
-
-model, optimizer, loader, scheduler = accelerator.prepare(model, optimizer, loader, scheduler)
-model.print_trainable_parameters()
-
 scheduler = LRScheduler(
     optimizer,
     max_lr=MAX_LR,
@@ -83,6 +79,10 @@ scheduler = LRScheduler(
     warmup_steps=WARMUP_STEPS,
     min_lr=MIN_LR
 )
+model, optimizer, loader, scheduler = accelerator.prepare(model, optimizer, loader, scheduler)
+model.print_trainable_parameters()
+
+
 
 if __name__ == "__main__":
     metrics = Metrics(
