@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader
 import torch
 from tqdm import tqdm
 from accelerate import Accelerator
+from peft import get_peft_model, LoraConfig
 
 accelerator = Accelerator(
     mixed_precision="bf16",
@@ -49,7 +50,6 @@ MIN_LR = 1e-6
 WARMUP_STEPS = 100
 
 model, tokenizer, config = get_model()
-optimizer = torch.optim.AdamW(model.parameters(), lr=MAX_LR)
 
 total_steps = NUM_EPOCHS * len(loader)
 scheduler = LRScheduler(
@@ -60,12 +60,27 @@ scheduler = LRScheduler(
     min_lr=MIN_LR
 )
 
+lora_config = LoraConfig(
+    r=16,
+    lora_alpha=32,
+    lora_dropout=0.00,
+    task_type="CAUSAL_LM",
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "down_proj", "up_proj"]
+)
+
+model = get_peft_model(model, lora_config)
+
+emb = model.get_input_embeddings()
+for param in emb.parameters():
+    param.requires_grad = True
+
 model.config.use_cache = False
 model.gradient_checkpointing_enable()
 model.train()
+optimizer = torch.optim.AdamW(model.parameters(), lr=MAX_LR)
 
 model, optimizer, loader, scheduler = accelerator.prepare(model, optimizer, loader, scheduler)
-
+model.print_trainable_parameters()
 
 if __name__ == "__main__":
     metrics = Metrics(
