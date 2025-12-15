@@ -55,6 +55,7 @@ if __name__ == "__main__":
         total_loss = 0.0
 
         for batch, mask in tqdm(loader, desc=f"Epoch {epoch+1}"):
+            print(torch.backends.cuda.flash_sdp_enabled())
             mask = mask.to(dtype=torch.bool)
             batch = batch.to(dtype=torch.long)
             optimizer.zero_grad()
