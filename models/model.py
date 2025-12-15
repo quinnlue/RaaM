@@ -43,7 +43,7 @@ def load_model(model_name: str | None = None, checkpoint_path: str | None = None
     if model_name:
         # Load directly from HuggingFace
         config = AutoConfig.from_pretrained(model_name)
-            
+        tokenizer = AutoTokenizer.from_pretrained("quinnlue/cot-tokenizer")
         model = AutoModelForCausalLM.from_pretrained(model_name)
     elif checkpoint_path and config_name:
         # Load checkpoint with separate HF config
