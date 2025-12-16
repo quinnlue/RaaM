@@ -32,7 +32,7 @@ loader = DataLoader(
     dataset,
     batch_sampler=BucketBatchSampler(
         dataset,
-        tokens_per_batch=8192,
+        tokens_per_batch=12288,
         bucket_sizes=bucket_sizes,
         shuffle=True
 
@@ -105,8 +105,8 @@ if __name__ == "__main__":
         training_log_path="training.log"
     )
     
-    # Calculate save steps (25%, 50%, 75%, 100%)
-    save_steps = {int(total_steps * pct / 100): pct for pct in SAVE_PERCENTAGES}
+    # Calculate save steps (0% = step 1, then 25%, 50%, 75%, 100%)
+    save_steps = {max(1, int(total_steps * pct / 100)): pct for pct in SAVE_PERCENTAGES}
     
     pbar = tqdm(total=total_steps, desc="Training")
     
