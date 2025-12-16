@@ -94,6 +94,9 @@ model.print_trainable_parameters()
 
 
 
+REMOTE_REPO = "quinnlue/cot-model"
+SAVE_PERCENTAGES = [0, 25, 50, 75, 100]
+
 if __name__ == "__main__":
     metrics = Metrics(
         num_epochs=NUM_EPOCHS,
@@ -101,6 +104,9 @@ if __name__ == "__main__":
         log_frequency=100,
         training_log_path="training.log"
     )
+    
+    # Calculate save steps (25%, 50%, 75%, 100%)
+    save_steps = {int(total_steps * pct / 100): pct for pct in SAVE_PERCENTAGES}
     
     pbar = tqdm(total=total_steps, desc="Training")
     
@@ -122,6 +128,18 @@ if __name__ == "__main__":
                 scheduler.step()
 
                 metrics.update(loss.item(), optimizer, pbar, scheduler)
+                
+                # Save to remote at checkpoints
+                current_step = metrics.pbar_manager.current_step
+                if current_step in save_steps:
+                    pct = save_steps[current_step]
+                    accelerator.wait_for_everyone()
+                    if accelerator.is_main_process:
+                        unwrapped_model = accelerator.unwrap_model(model)
+                        unwrapped_model.save_pretrained(f"checkpoints/cot-{pct}pct")
+                        tokenizer.save_pretrained(f"checkpoints/cot-{pct}pct")
+                        unwrapped_model.push_to_hub(REMOTE_REPO, commit_message=f"Training {pct}% complete")
+                        tokenizer.push_to_hub(REMOTE_REPO, commit_message=f"Training {pct}% complete - tokenizer")
     
     pbar.close()
     accelerator.print(f"Training complete. Final step: {metrics.pbar_manager.current_step}")

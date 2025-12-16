@@ -83,6 +83,7 @@ def setup_logger(name: str, log_file: str, mode: str = 'w', header: Optional[str
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
     logger.handlers.clear()
+    logger.propagate = False
     
     file_handler = logging.FileHandler(log_file, mode=mode)
     file_handler.setLevel(logging.INFO)
